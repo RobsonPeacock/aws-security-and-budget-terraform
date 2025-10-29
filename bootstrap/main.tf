@@ -7,18 +7,12 @@ resource "aws_s3_bucket" "tf_state_bucket" {
   }
 }
 
-resource "aws_kms_key" "tf_state_bucket_key" {
-  description             = "This key is used to encrypt objects stored in the tf state bucket"
-  deletion_window_in_days = 10
-}
-
 resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state_bucket_enc_config" {
   bucket = aws_s3_bucket.tf_state_bucket.id
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = aws_kms_key.tf_state_bucket_key.id
-      sse_algorithm     = "aws:kms"
+      sse_algorithm     = "AES256"
     }
   }
 }
