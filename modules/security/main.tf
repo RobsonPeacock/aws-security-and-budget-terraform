@@ -81,3 +81,81 @@ resource "aws_s3_bucket_policy" "cloudtrail_log_bucket_policy_doc" {
   bucket = aws_s3_bucket.cloudtrail_log_bucket.id
   policy = data.aws_iam_policy_document.cloudtrail_log_bucket_policy_doc.json
 }
+
+resource "aws_s3_bucket" "config_bucket" {
+  bucket = "rp-aws-config-bucket"
+
+  tags = {
+    Name = "AWS Config bucket"
+    Environment = "production"
+  }
+}
+
+data "aws_iam_policy_document" "config_bucket_policy_doc" {
+  statement {
+    sid    = "AWSConfigBucketPermissionsCheck"
+    effect = "Allow"
+    actions = ["s3:GetBucketAcl"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+
+    resources = [
+      aws_s3_bucket.config_bucket.arn,
+    ]
+  }
+
+  statement {
+    sid    = "AWSConfigBucketDelivery"
+    effect = "Allow"
+    actions = ["s3:PutObject"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+
+    resources = [
+      "${aws_s3_bucket.config_bucket.arn}/*",
+    ]
+
+    condition { 
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "config_bucket_policy" {
+  bucket = aws_s3_bucket.config_bucket.id
+  policy = data.aws_iam_policy_document.config_bucket_policy_doc.json
+}
+
+data "aws_iam_policy_document" "config_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy" "config_role_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AWS_ConfigRole"
+}
+
+resource "aws_iam_role" "config_role" {
+  name               = "aws-config-service-role"
+  assume_role_policy = data.aws_iam_policy_document.config_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "config_bucket_attachment" {
+  role = aws_iam_role.config_role.name
+  policy_arn = data.aws_iam_policy.config_role_policy.arn
+}
