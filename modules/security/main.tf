@@ -5,6 +5,10 @@ resource "aws_securityhub_account" "security_hub" {
 resource "aws_cloudtrail" "account_security_trail" {
   name           = "rp-account-security-trail"
   s3_bucket_name = aws_s3_bucket.cloudtrail_log_bucket.id
+
+  depends_on = [ 
+    aws_s3_bucket_policy.cloudtrail_log_bucket_policy_doc
+  ]
 }
 
 resource "aws_s3_bucket" "cloudtrail_log_bucket" {
@@ -48,7 +52,7 @@ data "aws_iam_policy_document" "cloudtrail_log_bucket_policy_doc" {
     condition {
       test     = "StringEquals"
       variable = "aws:SourceArn"
-      values   = [aws_cloudtrail.account_security_trail.arn]
+      values   = [local.cloudtrail_source_arn]
     }
   }
 
@@ -72,7 +76,7 @@ data "aws_iam_policy_document" "cloudtrail_log_bucket_policy_doc" {
     condition {
       test     = "StringEquals"
       variable = "aws:SourceArn"
-      values   = [aws_cloudtrail.account_security_trail.arn]
+      values   = [local.cloudtrail_source_arn]
     }
   }
 }
