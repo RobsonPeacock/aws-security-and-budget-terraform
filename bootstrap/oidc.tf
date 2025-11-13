@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "github_actions_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values = ["repo:RobsonPeacock/aws-security-and-budget-terraform:ref:refs/heads/main"]
+      values   = ["repo:RobsonPeacock/aws-security-and-budget-terraform:ref:refs/heads/main"]
     }
   }
 }
