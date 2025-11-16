@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "github_actions_trust" {
 
     principals {
       type        = "Federated"
-      identifiers = ["arn:aws:iam::${var.account_id}:oidc-provider/token.actions.githubusercontent.com"]
+      identifiers = ["arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"]
     }
 
     condition {
@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "tf_deploy_permissions" {
       "s3:DeleteObject",
     ]
     resources = [
-      aws_s3_bucket.tf_state_bucket.arn, 
+      aws_s3_bucket.tf_state_bucket.arn,
       "${aws_s3_bucket.tf_state_bucket.arn}/*"
     ]
   }
