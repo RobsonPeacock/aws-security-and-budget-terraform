@@ -1,0 +1,81 @@
+name: Terraform Security & Budget Deployment
+run-name: This will perform the necessary checks and deploy the latest changes
+on: 
+  push:
+    branches: [ main ]
+permissions:
+  id-token: write
+  contents: read
+env:
+  TF_VAR_notification_emails: ${{ secrets.TF_VAR_notification_emails }}
+jobs:
+  bootstrap:
+    name: Deploy Bootstrap Resources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt (Bootstrap)
+        run: terraform fmt -check
+        working-directory: ./bootstrap
+
+      - name: Terraform Init (Bootstrap)
+        run: |
+          terraform init -input=false
+        working-directory: ./bootstrap
+
+      - name: Terraform Validate (Bootstrap)
+        run: terraform validate -no-color
+        working-directory: ./bootstrap
+
+      - name: Terraform Plan (Bootstrap)
+        run: terraform plan -no-color -input=false
+        working-directory: ./bootstrap
+
+      - name: Terraform Apply (Bootstrap)
+        run: terraform apply -auto-approve -input=false
+        working-directory: ./bootstrap
+
+  common:
+    name: Deploy Common Resources
+    needs: bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt (Common)
+        run: terraform fmt -check
+        working-directory: ./environments/common
+
+      - name: Terraform Init (Common)
+        run: |
+          terraform init -input=false
+        working-directory: ./environments/common
+
+      - name: Terraform Validate (Common)
+        run: terraform validate -no-color
+        working-directory: ./environments/common
+
+      - name: Terraform Plan (Common)
+        run: terraform plan -no-color -input=false
+        working-directory: ./environments/common
+
+      - name: Terraform Apply (Common)
+        run: terraform apply -auto-approve -input=false
+        working-directory: ./environments/common
