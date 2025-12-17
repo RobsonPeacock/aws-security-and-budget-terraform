@@ -45,6 +45,21 @@ data "aws_iam_policy_document" "tf_deploy_permissions" {
       "s3:GetObject",
       "s3:PutObject",
       "s3:DeleteObject",
+      "s3:GetBucketPolicy",
+      "s3:GetBucketAcl",
+      "s3:GetBucketCORS",
+      "s3:GetBucketWebsite",
+      "s3:GetBucketVersioning",
+      "s3:GetAccelerateConfiguration",
+      "s3:GetBucketRequestPayment",
+      "s3:GetBucketLogging",
+      "s3:GetBucketLocation",
+      "s3:GetEncryptionConfiguration",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketTagging",
+      "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
+      "s3:GetBucketObjectLockConfiguration"
     ]
     resources = [
       aws_s3_bucket.tf_state_bucket.arn,
@@ -59,9 +74,49 @@ data "aws_iam_policy_document" "tf_deploy_permissions" {
       "dynamodb:GetItem",
       "dynamodb:PutItem",
       "dynamodb:DeleteItem",
+      "dynamodb:DescribeTable",
+      "dynamodb:DescribeContinuousBackups",
+      "dynamodb:DescribeTimeToLive",
+      "dynamodb:ListTagsOfResource"
     ]
     resources = [
       aws_dynamodb_table.tf_state_locking_table.arn
+    ]
+  }
+
+  statement {
+    sid    = "AllowReadOIDCProvider"
+    effect = "Allow"
+    actions = [
+      "iam:GetOpenIDConnectProvider"
+    ]
+    resources = [
+      aws_iam_openid_connect_provider.github.arn
+    ]
+  }
+
+  statement {
+    sid    = "AllowReadCIRole"
+    effect = "Allow"
+    actions = [
+      "iam:GetRole",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
+    ]
+    resources = [
+      aws_iam_role.github_actions_tf_role.arn
+    ]
+  }
+
+  statement {
+    sid    = "AllowGetDeployPolicy"
+    effect = "Allow"
+    actions = [
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion"
+    ]
+    resources = [
+      "arn:aws:iam::${local.account_id}:policy/Terraform-Deploy-Policy"
     ]
   }
 }
