@@ -1,7 +1,3 @@
-resource "aws_securityhub_account" "security_hub" {
-  auto_enable_controls = false
-}
-
 resource "aws_cloudtrail" "account_security_trail" {
   name           = "rp-account-security-trail"
   s3_bucket_name = aws_s3_bucket.cloudtrail_log_bucket.id
