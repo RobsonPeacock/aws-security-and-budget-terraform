@@ -7,7 +7,7 @@ permissions:
   id-token: write
   contents: read
 env:
-  TF_VAR_notification_emails: ${{ secrets.TF_VAR_notification_emails }}
+  TF_VAR_notification_emails: ${{ secrets.TF_VAR_NOTIFICATION_EMAILS }}
 jobs:
   bootstrap:
     name: Deploy Bootstrap Resources
