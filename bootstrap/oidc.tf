@@ -30,6 +30,10 @@ data "aws_iam_policy_document" "github_actions_trust" {
   }
 }
 
+data "aws_budgets_budget" "monthly" {
+  name = "Monthly-Account-Limit"
+}
+
 resource "aws_iam_role" "github_actions_tf_role" {
   name               = "github-actions-tf-role"
   description        = "Role for GitHub Actions to deploy Terraform infrastructure."
@@ -63,7 +67,9 @@ data "aws_iam_policy_document" "tf_deploy_permissions" {
     ]
     resources = [
       aws_s3_bucket.tf_state_bucket.arn,
-      "${aws_s3_bucket.tf_state_bucket.arn}/*"
+      "${aws_s3_bucket.tf_state_bucket.arn}/*",
+      "arn:aws:s3:::rp-cloudtrail-log-bucket-*",
+      "arn:aws:s3:::rp-cloudtrail-log-bucket-*/*"
     ]
   }
 
@@ -113,10 +119,44 @@ data "aws_iam_policy_document" "tf_deploy_permissions" {
     effect = "Allow"
     actions = [
       "iam:GetPolicy",
-      "iam:GetPolicyVersion"
+      "iam:GetPolicyVersion",
+      "iam:ListPolicyVersions"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:policy/Terraform-Deploy-Policy"
+    ]
+  }
+
+  statement {
+    sid    = "AllowGetBudgets"
+    effect = "Allow"
+    actions = [
+      "budgets:ViewBudget",
+      "budgets:ListTagsForResource"
+    ]
+    resources = [
+      data.aws_budgets_budget.monthly.arn
+    ]
+  }
+
+  statement {
+    sid    = "AllowCloudTrailDiscovery"
+    effect = "Allow"
+    actions = [
+      "cloudtrail:DescribeTrails"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowManageSecurityTrail"
+    effect = "Allow"
+    actions = [
+      "cloudtrail:GetTrailStatus",
+      "cloudtrail:ListTags"
+    ]
+    resources = [
+      "arn:aws:cloudtrail:${var.aws_region}:${local.account_id}:trail/rp-account-security-trail"
     ]
   }
 }
