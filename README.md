@@ -25,7 +25,7 @@ Deterministic Naming
 
 To solve the "Bootstrap Paradox" (where a role needs permissions for a resource that hasn't been created yet), I use Deterministic ARN Construction. By calculating the ARN string in advance using my Account ID and a fixed naming convention, I can deploy the IAM Role in bootstrap before the common infrastructure even exists.
 
-🚀 Getting Started
+## 🚀 Getting Started
 
 **1. Manual Bootstrap**
 
@@ -47,20 +47,12 @@ terraform apply
 
 I use [act](https://github.com/nektos/act) to test my GitHub Actions workflows locally. This saves me from having to "commit and push" just to debug a YAML error. To keep my credentials secure and my terminal history clean, I use a .secrets file.
 
-Create a .secrets file in the root directory:
-Bash
-
 # .secrets file format
 ```
 AWS_ACCOUNT_ID=123456789012
 
 AWS_REGION=us-east-1
 ```
-# Add other GitHub secrets here
-
-Run the local simulation:
-Bash
-
 ## 🔧 My Common Troubleshooting Steps
 
 Secret Casing: I remember that while GitHub Secrets are UPPERCASE, I must map them to lower_snake_case Terraform variables in my YAML using the TF_VAR_ prefix (e.g., TF_VAR_aws_region).
